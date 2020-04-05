@@ -1,0 +1,98 @@
+grammar org.xtext.example.mydsl.MyDsl with org.eclipse.xtext.common.Terminals
+
+module kitchen.standard.Units
+
+Units
+	g: weight
+	kg: weight
+	dl: weight
+	l: weight
+	min: time
+	h: time
+;
+
+recipe database.ravintola
+module kitchen.ravintola.Recipe
+module kitchen.ravintola.RecipeType
+
+RecipeType
+	Soup
+	Meat : Chicken, Fish
+	Salad
+	Fruit
+	default
+	//...
+;
+
+module kitchen.ravintola.Ingredients
+
+IngredientsType
+	Liquid (ActionType: boil, stir)	
+	Flour (ActionType: mix)
+	Vegetable (ActionType: cut, boil)
+	Meat (ActionType: cut, boil)
+	//...
+;
+
+module kitchen.standard.actions
+module kitchen.ravintola.RecipeType
+module kitchen.ravintola.Recipe
+
+ActionType
+	cut
+	boil
+	stir (Do If RecipeType = 'Soup'
+		info("RecipeType not Stirable")
+	mix (Do If 'Ingredients' > 1
+		info("Can not mix only 1 Ingredient. Ad more Ingredients")
+	add
+;	
+	
+	
+generate myDsl "http://www.example.org/myDs1/MyDs1"
+
+Model:
+	entities += Entity+;
+	
+Entity:
+	'entity' name=ID ('extends' superType=[Entity])? '{'
+		field += Field*
+		statements += Statement*
+	'}'
+;
+
+Statement:
+	PrintStatement
+;
+
+PrintStatement:
+	'print' expression=Expression
+;
+
+Expression:
+	{IntConstant} value=INT |
+	{StringConstant} value=STRING |
+	{BoolConstant} value=('on'|'off') |
+	{FieldRef} field=[Field]
+;
+
+AssignmentStatement:
+	assignee=[Field] '=' expr=Expression
+;
+Field:
+	type=FieldType
+	name=ID	
+;	
+
+FieldType:
+	BasicType | EntityType
+;
+
+BasicType:
+	typeName = ('text' | 'number' | 'toggle')
+;
+
+EntityType:
+	entity=[Entity]
+;
+
